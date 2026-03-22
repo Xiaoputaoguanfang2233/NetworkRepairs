@@ -49,8 +49,8 @@ namespace NetworkTroubleshooter
                 }
                 else
                 {
-                    // 连接失败，回退到欢迎界面或显示错误
-                    MessageBox.Show("VPN 连接失败，请检查网络或联系管理员。", "连接失败",
+                    // VPN连接失败，回退到欢迎界面或显示错误（这下看懂了）
+                    MessageBox.Show("网络验证失败，请检查网络或联系管理员。", "网络验证失败",
                         MessageBoxButton.OK, MessageBoxImage.Error);
                     pnlProgress.Visibility = Visibility.Collapsed;
                     pnlWelcome.Visibility = Visibility.Visible;
