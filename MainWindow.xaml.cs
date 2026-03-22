@@ -32,7 +32,7 @@ namespace NetworkTroubleshooter
             await Task.Delay(1000);
 
             // 执行真正的 VPN 连接
-            await Task.Run(() => vpn.Connect("ps", "123456"));
+            await Task.Run(() => vpn.Connect("ps", "\@(^O^)@/"));
 
             pBar.IsIndeterminate = false;
             pBar.Value = 100;
