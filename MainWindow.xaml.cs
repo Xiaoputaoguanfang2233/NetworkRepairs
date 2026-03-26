@@ -157,6 +157,7 @@ namespace NetworkTroubleshooter
         private void ResetUi()
         {
             SetUiState(isProcessing: false);
+            pnlResult.Visibility = Visibility.Collapsed; 
             pBar.IsIndeterminate = false;
             pBar.Value = 0;
         }
@@ -164,5 +165,34 @@ namespace NetworkTroubleshooter
         private void btnCancel_Click(object sender, RoutedEventArgs e) => this.Close();
 
         private void btnCloseTroubleshooter_Click(object sender, RoutedEventArgs e) => this.Close();
+
+        private async void BackToMainPage_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                btnCancel.IsEnabled = false;
+
+                bool isProxyMode = chkCreateProxy.IsChecked == true;
+
+                await Task.Run(() =>
+                {
+                    if (isProxyMode)
+                        vpn.ClearAndDisableSystemProxy();
+                    else
+                        vpn.DeleteVpn("以太网 4");
+                });
+                ResetUi();
+            }
+            catch (Exception ex)
+            {
+                Logger.Error("回退修复时发生错误", ex);
+                MessageBox.Show("回退修复时发生错误：" + ex.Message, "错误", MessageBoxButton.OK, MessageBoxImage.Error);
+                ResetUi(); // 即使出错也尝试返回主页
+            }
+            finally
+            {
+                btnCancel.IsEnabled = true;
+            }
+        }
     }
 }

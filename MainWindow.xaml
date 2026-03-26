@@ -86,7 +86,7 @@
                     <CheckBox x:Name="chkAdvancedSettings" Content="使用高级设置" Margin="15,0,0,0" 
               Visibility="Collapsed" VerticalAlignment="Center"/>
                 </StackPanel>
-                <TextBlock Text="     发布者: Microsoft Corporation" Margin="60,8,0,0" Foreground="#666666" FontSize="11"/>
+                <TextBlock Text="     发布者: Microsoft Corporation" Margin="60,15,0,0" Foreground="#666666" FontSize="11"/>
             </StackPanel>
 
             <StackPanel x:Name="pnlProgress" Visibility="Collapsed">
@@ -133,10 +133,10 @@
                             <TextBlock Text="关闭疑难解答" FontSize="13" VerticalAlignment="Center"/>
                         </StackPanel>
                     </Button>
-                    <Button Style="{StaticResource RetroLinkButtonStyle}" Margin="0,2,0,0">
+                    <Button Style="{StaticResource RetroLinkButtonStyle}" Margin="0,2,0,0"  Click="BackToMainPage_Click">
                         <StackPanel Orientation="Horizontal">
                             <TextBlock Text="→" FontFamily="Segoe UISymbol" FontSize="18" Foreground="Green" Margin="0,0,12,0"/>
-                            <TextBlock Text="浏览其他选项" FontSize="13" VerticalAlignment="Center"/>
+                            <TextBlock Text="重新运行疑难解答" FontSize="13" VerticalAlignment="Center"/>
                         </StackPanel>
                     </Button>
                 </StackPanel>
@@ -146,7 +146,6 @@
         <Border Grid.Row="2" Background="#E1E1E1" BorderBrush="#D0D0D0" BorderThickness="0,1,0,0" Grid.ColumnSpan="2">
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="20,0">
                 <Button x:Name="btnNext" Content="下一步(_N)" Width="90" Height="26" Click="btnNext_Click" IsDefault="True" Background="#F0F0F0" BorderBrush="#ADADAD"/>
-                <Button x:Name="btnFinish" Content="完成(_F)" Width="90" Height="26" Visibility="Collapsed" Click="btnCancel_Click" Background="#F0F0F0" BorderBrush="#ADADAD"/>
                 <Button x:Name="btnCancel" Content="取消" Width="90" Height="26" Margin="10,0,0,0" Click="btnCancel_Click" IsCancel="True" Background="#F0F0F0" BorderBrush="#ADADAD"/>
             </StackPanel>
         </Border>
