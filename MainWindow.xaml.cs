@@ -24,32 +24,39 @@ namespace NetworkTroubleshooter
             DelProxyandVPN(1);
         }
 
-        private void DelProxyandVPN(int num)
+        private async Task DelProxyandVPN(int num)
         {
-            if(num == 1)
-            {
-                if (_isCleaningUp) return; // 避免递归
-                _isCleaningUp = true;
+            if (_isCleaningUp) return;
+            _isCleaningUp = true;
 
-                try
+            try
+            {
+                if (num == 1)
                 {
-                    if (chkCreateProxy.IsChecked != true)
-                        vpn.DeleteVpn("以太网 4");
+                    bool createProxyChecked = await Application.Current.Dispatcher.InvokeAsync(() => chkCreateProxy.IsChecked == true);
+
+                    if (!createProxyChecked)
+                        await Task.Run(() => vpn.DeleteVpn("以太网 4"));
                     else
-                        vpn.ClearAndDisableSystemProxy();
+                        await Task.Run(() => vpn.ClearAndDisableSystemProxy());
                 }
-                catch (Exception ex)
+                else
                 {
-                    Logger.Error("删除设置时发生错误", ex);
+                    await Task.WhenAll(
+                        Task.Run(() => vpn.ClearAndDisableSystemProxy()),
+                        Task.Run(() => vpn.DeleteVpn("以太网 4"))
+                    );
                 }
             }
-            else
+            catch (Exception ex)
             {
-                vpn.ClearAndDisableSystemProxy();
-                vpn.DeleteVpn("以太网 4");
+                Logger.Error("删除设置时发生错误", ex);
+            }
+            finally
+            {
+                _isCleaningUp = false;
             }
         }
-
         private void chkCreateProxy_Checked(object sender, RoutedEventArgs e)
         {
             chkAdvancedSettings.Visibility = Visibility.Visible;
