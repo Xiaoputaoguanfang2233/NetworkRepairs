@@ -2,20 +2,122 @@ using System;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
+using Microsoft.Win32; // 添加注册表命名空间
 
 namespace NetworkTroubleshooter
 {
     public partial class MainWindow : Window
     {
+        // 定义注册表路径和键名
+        private readonly string _registryPath = @"SOFTWARE\NetworkTroubleshooter";
+        private readonly string _registryKeyName = "LastActivationTime";
+
         private VpnManager vpn = new VpnManager();
         private bool _isCleaningUp = false; // 防止重复清理
 
-        public MainWindow() 
+        public MainWindow()
         {
+            // 新增：先检查激活状态
+            if (!IsActivationValid())
+            {
+                // 激活码验证失败或已过期，直接退出程序
+                Application.Current.Shutdown();
+                return;
+            }
+
             InitializeComponent();
             Logger.Info("\n应用程序启动");
             DelProxyandVPN(0);
             this.Closing += MainWindow_Closing; // 注册关闭事件
+        }
+
+        // 新增：检查激活是否有效
+        private bool IsActivationValid()
+        {
+            try
+            {
+                using (RegistryKey key = Registry.CurrentUser.OpenSubKey(_registryPath))
+                {
+                    if (key != null)
+                    {
+                        object value = key.GetValue(_registryKeyName);
+                        if (value != null && DateTime.TryParse(value.ToString(), out DateTime lastActivationDate))
+                        {
+                            // 计算时间差
+                            TimeSpan timeSinceLastActivation = DateTime.Now - lastActivationDate;
+
+                            // 如果未超过30天，则验证有效
+                            if (timeSinceLastActivation.TotalDays <= 30)
+                            {
+                                Logger.Info($"验证有效，距离上次激活已过去 {timeSinceLastActivation.Days} 天。");
+                                return true;
+                            }
+                            else
+                            {
+                                Logger.Info($"验证已过期，距离上次激活已过去 {timeSinceLastActivation.Days} 天，需要重新验证。");
+                            }
+                        }
+                    }
+                    else
+                    {
+                        Logger.Info("未找到激活记录，需要首次验证。");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Error("读取注册表时发生错误", ex);
+                // 读取失败，视为需要重新验证
+            }
+
+            // 如果注册表项不存在、解析失败或已过期，则弹出激活窗口
+            return ShowActivationWindow();
+        }
+
+        // 新增：保存当前时间为最新激活时间到注册表
+        private void SaveActivationTime()
+        {
+            try
+            {
+                using (RegistryKey key = Registry.CurrentUser.CreateSubKey(_registryPath))
+                {
+                    if (key != null)
+                    {
+                        // 写入当前UTC时间，以避免时区问题
+                        key.SetValue(_registryKeyName, DateTime.UtcNow.ToString("o"), RegistryValueKind.String);
+                        Logger.Info("激活时间已保存至注册表。");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Error("保存激活时间到注册表时发生错误", ex);
+                // 也可以给用户一个UI提示
+                MessageBox.Show("保存激活状态时发生错误，可能会导致下次启动时需要重新验证。", "警告", MessageBoxButton.OK, MessageBoxImage.Warning);
+            }
+        }
+
+        // 新增：激活码验证窗口
+        private bool ShowActivationWindow()
+        {
+            // 激活码示例（实际应用中应存储在安全位置）
+            const string validActivationCode = "\\@(^O^)@/";
+
+            // 创建验证窗口
+            var activationWindow = new ActivationWindow();
+            activationWindow.ActivationCode = validActivationCode;
+
+            // 显示模态窗口并等待结果
+            bool? result = activationWindow.ShowDialog();
+
+            if (result == true)
+            {
+                // 验证成功，保存当前时间
+                SaveActivationTime();
+                return true;
+            }
+
+            return false; // 验证失败或取消
         }
 
         // 窗口关闭前的清理操作
@@ -23,6 +125,8 @@ namespace NetworkTroubleshooter
         {
             DelProxyandVPN(1);
         }
+
+        // ... [其余代码保持不变] ...
 
         private async Task DelProxyandVPN(int num)
         {
@@ -168,7 +272,7 @@ namespace NetworkTroubleshooter
         private void ResetUi()
         {
             SetUiState(isProcessing: false);
-            pnlResult.Visibility = Visibility.Collapsed; 
+            pnlResult.Visibility = Visibility.Collapsed;
             pBar.IsIndeterminate = false;
             pBar.Value = 0;
         }
